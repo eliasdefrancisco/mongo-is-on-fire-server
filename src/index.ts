@@ -1,10 +1,16 @@
 import { waitForDebuggerAttach } from './helpers/common'
-import { startMongoConection } from './services/mongo'
+import MongoService from './services/mongo'
 
 
 async function init() {
     await waitForDebuggerAttach()
-    startMongoConection()
+    const mongoService = new MongoService()
+    console.log('!!! Starting Mongo Connection for 10 secs')
+    mongoService.startMongoConnection()
+    setTimeout(() => {
+        console.log('!!! Stopping Mongo Connection')
+        mongoService.stopMongoConnection()
+    }, 10000);
 }
 
 
