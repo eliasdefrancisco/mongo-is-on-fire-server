@@ -10,12 +10,11 @@ describe('Change Streams integration tests from Mongo Daemon', () => {
 
     beforeAll(async () => {
         await MongoClient.connect(config.mongoUri)
-            .then(client => {
+            .then(async client => {
                 mongoClient = client
                 const db = mongoClient.db(config.dbNameTest)
                 collection = db.collection(config.collectionOnFire)
-                // changeStream = collection.watch()
-                collection.deleteMany({})
+                await collection.deleteMany({})
             })
     })
 

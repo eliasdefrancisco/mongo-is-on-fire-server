@@ -7,5 +7,6 @@ export default {
     dbName: 'mongo_is_on_fire_db',
     dbNameDev: 'mongo_is_on_fire_db_DEV',
     dbNameTest: 'mongo_is_on_fire_db_TEST',
-    collectionOnFire: 'collectionOnFire'
+    collectionOnFire: 'collectionOnFire',
+    port: 3069,
 } as configType

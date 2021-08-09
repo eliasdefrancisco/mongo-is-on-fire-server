@@ -7,4 +7,5 @@ export default interface configType {
     dbNameDev: string,
     dbNameTest: string,
     collectionOnFire: string,
+    port: number,
 }

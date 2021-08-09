@@ -4,6 +4,8 @@ import _set from 'lodash.set'
 import config from '../config'
 import changeStreamOperations from '../enums/changeStreamOperations'
 import environments from '../enums/environments'
+import SocketService from './socket'
+import { socketEmitEvents } from '../enums/sockets'
 
 export default class MongoService {
     private collectionData: Document[]
@@ -13,10 +15,16 @@ export default class MongoService {
     private db: Db
 
     /**
+     * Instances MongoService class
+     * @param socketService Started socket service for sending events
+     */
+    constructor(private socketService: SocketService) {}
+
+    /**
      * Starts database connection and initializes local related database objects
      * @returns Mongo client connection promise
      */
-    public startMongoConnection = () => {
+    public startMongoConnection() {
         return MongoClient.connect(config.mongoUri)
             .then(async client => {
                 this.mongoClient = client
@@ -51,31 +59,41 @@ export default class MongoService {
     /**
      * Stop database connection and closes related objects
      */
-    public stopMongoConnection = async () => {
+    public async stopMongoConnection() {
         this.changeStream.removeAllListeners()
         this.changeStream.close()
         await this.mongoClient.close()
+    }
+
+    /**
+     * Returns complete local data collection
+     * @returns Collection data array
+     */
+    public getCollection(): Document[] {
+        return this.collectionData
     }
 
     /** 
      * Delete entire document from collection
      * @param change Returned object from Mongo Daemon identifing removed document 
      */
-    private deleteFromCollection = (change: ChangeStreamDocument<Document>) => {
+    private deleteFromCollection(change: ChangeStreamDocument<Document>) {
         const documentKey = _get(change, 'documentKey', { _id: null }) as any
         const deletedIndex = this.findCollectionIndexByDocumentKey(documentKey)
         if (!deletedIndex && deletedIndex !== 0) return
         this.collectionData.splice(deletedIndex, 1)
+        this.socketService.sendToEveryClients(socketEmitEvents.deleteDocument, deletedIndex)
     }
     
     /**
      * Insert document into collection
      * @param change Returned object from Mongo Daemon identifing and describing new document
      */
-    private insertFromCollection = (change: ChangeStreamDocument<Document>) => {
+    private insertFromCollection(change: ChangeStreamDocument<Document>) {
         const fullDocument = _get(change, 'fullDocument', { _id: null }) as any
         if (fullDocument._id) {
             this.collectionData.push(fullDocument)
+            this.socketService.sendToEveryClients(socketEmitEvents.insertDocument, fullDocument)
         }
     }
     
@@ -83,13 +101,14 @@ export default class MongoService {
      * Replace entire document from collection
      * @param change Returned object from Mongo Daemon identifing and describing new document
      */
-    private replaceFromCollection = (change: ChangeStreamDocument<Document>) => {
+    private replaceFromCollection(change: ChangeStreamDocument<Document>) {
         const fullDocument = _get(change, 'fullDocument', { _id: null }) as any
         const documentKey = _get(change, 'documentKey', { _id: null }) as any
         if (fullDocument._id && documentKey._id) {
             const replacedIndex = this.findCollectionIndexByDocumentKey(documentKey)
             if (!replacedIndex && replacedIndex !== 0) return 
             this.collectionData[replacedIndex] = fullDocument
+            this.socketService.sendToEveryClients(socketEmitEvents.replaceDocument, { replacedIndex, fullDocument })
         }
     }
     
@@ -97,7 +116,7 @@ export default class MongoService {
      * Update document structure and fields from document into a collection
      * @param change Returned object from Mongo Daemon identifing updated document and applied changes
      */
-    private updateFromCollection = (change: ChangeStreamDocument<Document>) => {
+    private updateFromCollection(change: ChangeStreamDocument<Document>) {
         const documentKey = _get(change, 'documentKey', { _id: null }) as any
         const updatedIndex = this.findCollectionIndexByDocumentKey(documentKey)
         if (!updatedIndex && updatedIndex !== 0) return 
@@ -108,17 +127,20 @@ export default class MongoService {
         if (removedFields.length > 0) {
             removedFields.forEach((removedField: string) => {
                 delete this.collectionData[updatedIndex][removedField]
+                this.socketService.sendToEveryClients(socketEmitEvents.removeField, { updatedIndex, removedField })
             });
         }
         if (truncatedArrays.length > 0) {
             truncatedArrays.forEach((truncatedArray: { field: string, newSize: number })  => {
                 this.collectionData[updatedIndex][truncatedArray.field].length = truncatedArray.newSize
+                this.socketService.sendToEveryClients(socketEmitEvents.truncateArrayField, { updatedIndex, truncatedArray })
             });
         }
         if (updateFieldsKeys.length > 0) {
             updateFieldsKeys.forEach((updatedKey: string) => {
                 const updatedValue = _get(change, `updateDescription.updatedFields['${updatedKey}']`, null) as any
                 _set(this.collectionData[updatedIndex], updatedKey, updatedValue)
+                this.socketService.sendToEveryClients(socketEmitEvents.updateField, { updatedIndex, updatedKey, updatedValue })
             })
         }
     }
@@ -128,7 +150,7 @@ export default class MongoService {
      * @param documentKey Document into a collection identifier
      * @returns Index number from local collection data array based on its documentKey._id or nothing if documentKey._id does not exist
      */
-    private findCollectionIndexByDocumentKey = (documentKey: { _id: any }): number | void => {
+    private findCollectionIndexByDocumentKey(documentKey: { _id: any }): number | void {
         if(documentKey._id){
             return this.collectionData.findIndex(document => {
                 return document._id.toString() === documentKey._id.toString()

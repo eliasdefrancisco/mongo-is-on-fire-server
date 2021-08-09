@@ -3,12 +3,15 @@ import config from '../config'
 import changeStreamOperations from '../enums/changeStreamOperations'
 import environments from '../enums/environments'
 import MongoService from './mongo'
+import SocketService from './socket'
+jest.mock('./socket')
 
 describe('Mongo Service unit and integration tests', () => {
     let mongoService: MongoService
 
     beforeAll(() => {
-        mongoService = new MongoService()
+        const socketService = new SocketService([])
+        mongoService = new MongoService(socketService)
         expect(mongoService).toBeDefined()
     })
 

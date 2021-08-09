@@ -8,7 +8,7 @@ import environments from "../enums/environments"
  * @param ms Number of milliseconds to wait for
  * @returns Resolved promise when count down of milliseconds ends
  */
-export const sleep = (ms: number) => {
+export function sleep(ms: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms)
     })
@@ -18,7 +18,7 @@ export const sleep = (ms: number) => {
 /**
  * Wait two seconds if project is in developing state, to give time for debbuger to attach the event
  */
- export async function waitForDebuggerAttach() {
+export async function waitForDebuggerAttach() {
     if (config.environment === environments.develop) {
         await sleep(2000)
     }

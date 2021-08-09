@@ -1,18 +1,26 @@
+import config from './config'
+import environments from './enums/environments'
 import { waitForDebuggerAttach } from './helpers/common'
 import MongoService from './services/mongo'
+import SocketService from './services/socket'
 
+let mongoService: MongoService
+let socketService: SocketService
 
 async function init() {
-    await waitForDebuggerAttach()
-    const mongoService = new MongoService()
-    console.log('!!! Starting Mongo Connection for 10 secs')
-    mongoService.startMongoConnection()
-    setTimeout(() => {
-        console.log('!!! Stopping Mongo Connection')
-        mongoService.stopMongoConnection()
-    }, 10000);
+    if (config.environment === environments.develop) await waitForDebuggerAttach()
+    mongoService = new MongoService(socketService)
+    await mongoService.startMongoConnection()
+    socketService = new SocketService(mongoService.getCollection())
+    socketService.startSocketListen()
 }
 
 
-init()
+function end() {
+    mongoService.stopMongoConnection()
+    socketService.stopSocketListen()
+}
 
+
+process.on('SIGINT', end)
+init()
