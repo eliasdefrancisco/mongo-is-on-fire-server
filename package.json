@@ -22,6 +22,7 @@
     "real-time"
   ],
   "author": "Elias de Francisco Javaloyes",
+  "email": "eliasdefrancisco@gmail.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eliasdefrancisco/mongo-is-on-fire-server/issues"

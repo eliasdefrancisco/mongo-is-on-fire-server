@@ -13,12 +13,15 @@ export default class MongoService {
     private mongoClient: MongoClient
     private collection: Collection
     private db: Db
+    private socketService: SocketService
 
     /**
-     * Instances MongoService class
-     * @param socketService Started socket service for sending events
+     * Inject needed dependencies after creation, for avoiding circular dependency problems
+     * @param socketService Socket service dependency
      */
-    constructor(private socketService: SocketService) {}
+    public injectDependencies(socketService: SocketService){
+        this.socketService = socketService
+    }
 
     /**
      * Starts database connection and initializes local related database objects
@@ -28,7 +31,7 @@ export default class MongoService {
         return MongoClient.connect(config.mongoUri)
             .then(async client => {
                 this.mongoClient = client
-                this.db = this.mongoClient.db(config.environment === environments.develop ? config.dbNameDev : config.dbName)
+                this.db = this.mongoClient.db(config.environment == environments.develop ? config.dbNameDev : config.dbName)
                 this.collection = this.db.collection(config.collectionOnFire)
                 this.collectionData = await this.collection.find({}).toArray()
                 const pipeline = [
@@ -44,6 +47,7 @@ export default class MongoService {
                 ]
                 this.changeStream = this.collection.watch(pipeline)
                 this.changeStream.on('change', (change: ChangeStreamDocument<Document>) => {
+                    // console.log('!!! change: ', change)
                     const op = change.operationType
                     if      (op === changeStreamOperations.insert) this.insertFromCollection(change)
                     else if (op === changeStreamOperations.update) this.updateFromCollection(change)
@@ -82,7 +86,7 @@ export default class MongoService {
         const deletedIndex = this.findCollectionIndexByDocumentKey(documentKey)
         if (!deletedIndex && deletedIndex !== 0) return
         this.collectionData.splice(deletedIndex, 1)
-        this.socketService.sendToEveryClients(socketEmitEvents.deleteDocument, deletedIndex)
+        this.socketService.sendToEveryClients(socketEmitEvents.deleteDocument, { deletedIndex })
     }
     
     /**

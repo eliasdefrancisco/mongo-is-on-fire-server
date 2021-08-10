@@ -1,24 +1,31 @@
-import { Document } from 'mongodb'
 import { Server, Socket} from 'socket.io'
 import config from '../config'
 import { socketListenEvents, socketEmitEvents } from '../enums/sockets'
 import lang from '../lang/en'
+import MongoService from './mongo'
 
 export default class SocketService {
     private io: Server
     private socketArr: Socket[] = []
+    private mongoService: MongoService
 
-    constructor(private collectionData: Document[]) {}
+    /**
+     * Inject needed dependencies after creation, for avoiding circular dependency problems
+     * @param mongoService MongoDB service dependency
+     */
+    public injectDependencies(mongoService: MongoService){
+        this.mongoService = mongoService
+    }
     
     /**
      * Start server socket connection listening
      */
-    public startSocketListen() {
+     public startSocketListen() {
         this.io = new Server(config.port)
         this.io.on( socketListenEvents.connection , (socket: Socket) => {
             this.socketArr.push(socket)
             socket.emit('welcome', lang.welcome)
-            socket.emit(socketEmitEvents.collectionComplete, this.collectionData)
+            socket.emit(socketEmitEvents.collectionComplete, this.mongoService.getCollection())
         })
     }
 

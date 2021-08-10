@@ -4,11 +4,11 @@ export enum socketListenEvents {
 
 export enum socketEmitEvents {
     welcome = 'welcome',
-    insertDocument = 'insert-document',
-    deleteDocument = 'update-document',
-    replaceDocument = 'replace-document',
-    updateField = 'update-field',
-    removeField = 'remove-field',
-    truncateArrayField = 'truncate-array-field',
-    collectionComplete = 'collection-complete',
+    insertDocument = 'insertDocument',
+    deleteDocument = 'deleteDocument',
+    replaceDocument = 'replaceDocument',
+    updateField = 'updateField',
+    removeField = 'removeField',
+    truncateArrayField = 'truncateArrayField',
+    collectionComplete = 'collectionComplete',
 }

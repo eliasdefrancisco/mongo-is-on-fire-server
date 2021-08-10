@@ -9,9 +9,11 @@ let socketService: SocketService
 
 async function init() {
     if (config.environment === environments.develop) await waitForDebuggerAttach()
-    mongoService = new MongoService(socketService)
+    mongoService = new MongoService()
+    socketService = new SocketService()
+    mongoService.injectDependencies(socketService)
+    socketService.injectDependencies(mongoService)
     await mongoService.startMongoConnection()
-    socketService = new SocketService(mongoService.getCollection())
     socketService.startSocketListen()
 }
 

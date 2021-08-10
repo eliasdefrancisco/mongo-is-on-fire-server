@@ -3,15 +3,16 @@ import config from '../config'
 import changeStreamOperations from '../enums/changeStreamOperations'
 import environments from '../enums/environments'
 import MongoService from './mongo'
-import SocketService from './socket'
-jest.mock('./socket')
 
 describe('Mongo Service unit and integration tests', () => {
     let mongoService: MongoService
 
     beforeAll(() => {
-        const socketService = new SocketService([])
-        mongoService = new MongoService(socketService)
+        const socketServiceMock = {
+            sendToEveryClients: () => undefined
+        }
+        mongoService = new MongoService()
+        mongoService.injectDependencies(socketServiceMock as any)
         expect(mongoService).toBeDefined()
     })
 
