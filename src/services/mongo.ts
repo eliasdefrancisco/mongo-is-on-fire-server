@@ -1,11 +1,11 @@
 import { ChangeStreamDocument, Collection, MongoClient, Document, ChangeStream, Db } from 'mongodb'
 import _get from 'lodash.get'
 import _set from 'lodash.set'
-import config from '../config'
 import changeStreamOperations from '../enums/changeStreamOperations'
 import environments from '../enums/environments'
 import SocketService from './socket'
 import { socketEmitEvents } from '../enums/sockets'
+import configType from '../types/config'
 
 export default class MongoService {
     private collectionData: Document[]
@@ -27,7 +27,7 @@ export default class MongoService {
      * Starts database connection and initializes local related database objects
      * @returns Mongo client connection promise
      */
-    public startMongoConnection() {
+    public startMongoConnection(config: configType) {
         return MongoClient.connect(config.mongoUri)
             .then(async client => {
                 this.mongoClient = client

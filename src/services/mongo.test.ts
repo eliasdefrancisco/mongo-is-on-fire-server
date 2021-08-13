@@ -1,8 +1,18 @@
 import { ChangeStreamDocument } from 'mongodb'
-import config from '../config'
 import changeStreamOperations from '../enums/changeStreamOperations'
 import environments from '../enums/environments'
+import configType from '../types/config'
 import MongoService from './mongo'
+
+const config = {
+    environment: environments.develop,
+    mongoUri: 'mongodb://localhost:27017?replicaSet=mongo-repl',
+    dbName: 'mongo_is_on_fire_db',
+    dbNameDev: 'mongo_is_on_fire_db_DEV',
+    dbNameTest: 'mongo_is_on_fire_db_TEST',
+    collectionOnFire: 'collectionOnFire',
+    port: 3069,
+} as configType
 
 describe('Mongo Service unit and integration tests', () => {
     let mongoService: MongoService
@@ -22,7 +32,7 @@ describe('Mongo Service unit and integration tests', () => {
         expect(mongoService['mongoClient']).not.toBeDefined()
         expect(mongoService['collection']).not.toBeDefined()
         expect(mongoService['db']).not.toBeDefined()
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         expect(mongoService['collectionData']).toBeDefined()
         expect(mongoService['collectionData'].length).toBeDefined()
         expect(mongoService['changeStream']).toBeDefined()
@@ -41,7 +51,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('Can connect and disconnect again', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         expect(mongoService['collectionData']).toBeDefined()
         expect(mongoService['collectionData'].length).toBeDefined()
         expect(mongoService['changeStream']).toBeDefined()
@@ -57,7 +67,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('Chage Stream Listener(change) has to route change events for insert, update, replace and delete operations', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             const insertFunctionMock = jest.spyOn(mongoService, 'insertFromCollection' as never)
             const updateFunctionMock = jest.spyOn(mongoService, 'updateFromCollection' as never)
@@ -80,7 +90,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private deleteFromCollection() have to remove document right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111 }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111 }])
@@ -93,7 +103,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private insertFromCollection() have to insert document right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = []
             expect( mongoService['collectionData']).toEqual([])
@@ -106,7 +116,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private replaceFromCollection() have to replace document right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, dummy: 'aa' }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, dummy: 'aa' }])
@@ -122,7 +132,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private updateFromCollection() have to remove document field right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, dummy: 'aa', dummy2: 'bb' }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, dummy: 'aa', dummy2: 'bb' }])
@@ -138,7 +148,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private updateFromCollection() have to truncate document array field right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, arr: [1, 2, 3, 4, 5, 6] }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, arr: [1, 2, 3, 4, 5, 6] }])
@@ -154,7 +164,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private updateFromCollection() have to update document field right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, dummy: 'aa' }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, dummy: 'aa' }])
@@ -170,7 +180,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private updateFromCollection() have to update document array field right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, arr: [1, 2, 3, 4] }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, arr: [1, 2, 3, 4] }])
@@ -186,7 +196,7 @@ describe('Mongo Service unit and integration tests', () => {
     })
 
     test('private updateFromCollection() have to update document array field right way on collectionData[]', async () => {
-        await mongoService.startMongoConnection()
+        await mongoService.startMongoConnection(config)
         try {
             mongoService['collectionData'] = [{ _id: 111, arr: [1, 2, 3, 4] }]
             expect( mongoService['collectionData']).toEqual([{ _id: 111, arr: [1, 2, 3, 4] }])

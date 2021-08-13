@@ -1,11 +1,11 @@
 import environments from "../enums/environments"
 
 export default interface configType {
-    environment: environments,
+    environment?: environments,
     mongoUri: string,
     dbName: string,
-    dbNameDev: string,
-    dbNameTest: string,
+    dbNameDev?: string,
+    dbNameTest?: string,
     collectionOnFire: string,
     port: number,
 }

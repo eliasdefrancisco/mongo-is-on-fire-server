@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Reactive functionality in your MongoDB server",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run test && tsc",
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --inspect=4321 --respawn -- src/index.ts",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "publishToNpm": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
@@ -47,5 +49,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
+  },
+  "engines": {
+    "node": ">=12.9.0"
   }
 }

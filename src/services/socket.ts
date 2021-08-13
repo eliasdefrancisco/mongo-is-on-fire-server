@@ -1,7 +1,7 @@
 import { Server, Socket} from 'socket.io'
-import config from '../config'
 import { socketListenEvents, socketEmitEvents } from '../enums/sockets'
 import lang from '../lang/en'
+import configType from '../types/config'
 import MongoService from './mongo'
 
 export default class SocketService {
@@ -20,7 +20,7 @@ export default class SocketService {
     /**
      * Start server socket connection listening
      */
-     public startSocketListen() {
+     public startSocketListen(config: configType) {
         this.io = new Server(config.port)
         this.io.on( socketListenEvents.connection , (socket: Socket) => {
             this.socketArr.push(socket)
