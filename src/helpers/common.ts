@@ -44,6 +44,6 @@ export function versionStringToNumber(ver: string): number {
     const onlyNumbersVerArr = verArr.map(field => +field).filter(field => !isNaN(field))
     const oldLength = onlyNumbersVerArr.length
     onlyNumbersVerArr.length = maxGroupedNumbers
-    const normalizedArr = onlyNumbersVerArr.fill(0, oldLength - 1, maxGroupedNumbers)
+    const normalizedArr = onlyNumbersVerArr.fill(0, oldLength, maxGroupedNumbers)
     return +normalizedArr.join('')
 }
