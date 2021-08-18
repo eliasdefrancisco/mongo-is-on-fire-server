@@ -5,11 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run test && rimraf dist && tsc",
+    "build": "rimraf dist && tsc",
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --inspect=4321 --respawn -- src/index.ts",
     "test": "jest --verbose",
-    "publishToNpm": "npm run build && npm publish"
+    "publishToNpm": "npm run test && npm run build && npm publish"
   },
   "repository": {
     "type": "git",
